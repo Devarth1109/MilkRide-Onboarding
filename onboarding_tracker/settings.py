@@ -80,7 +80,7 @@ DATABASES = {
         "NAME": "onboard_tracker",
         "USER": "devarth",
         "PASSWORD": "Drn11@2003",
-        "HOST": "127.0.0.1",
+        "HOST": "216.24.60.0/24",
         "PORT": "3306",
     }
 }
