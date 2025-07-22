@@ -1,0 +1,54 @@
+{% extends 'dashboard_headers.html' %}
+{% load static %}
+{% block content %}
+
+<div class="content-wrapper">
+    <div class="row mt-0">
+        <div class="col-md-8 mx-auto">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Add Task</h5>
+                </div>
+                <div class="card-body">
+                    {% if error %}
+                        <p style="color:red;">{{ error }}</p>
+                    {% endif %}
+                    <form action="{% url 'add_task_template' %}" method="POST" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        <div class="form-group">
+                            <label for="category_id">Category:</label>
+                            <select class="form-control form-control-lg" id="category_id" name="category_id" required>
+                                {% for category in categories %}
+                                    <option value="{{ category.id }}">{{ category.cat_name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <input type="text" class="form-control form-control-lg" id="name" name="name"
+                                placeholder="Task Name" required>
+                        </div>
+                        <div class="form-group">
+                            <textarea id="description" name="description" class="form-control form-control-lg"
+                                placeholder="Task Description"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label for="duration">Duration:</label>
+                            <input type="number" class="form-control form-control-lg" id="duration" name="duration" required min="1">
+                        </div>
+                        <div class="form-group">
+                            <label for="priority">Priority:</label>
+                            <select class="form-control form-control-lg" id="priority" name="priority" required>
+                                <option value="low">Low</option>
+                                <option value="medium" selected>Medium</option>
+                                <option value="high">High</option>
+                            </select>
+                        </div>
+                        <button class="btn btn-primary btn-block btn-lg font-weight-medium auth-form-btn" type="submit">Add Task Template</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

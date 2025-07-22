@@ -1,0 +1,55 @@
+{% extends 'dashboard_headers.html' %}
+{% load static %}
+{% block content %}
+
+<div class="content-wrapper">
+  <div class="row mt-0">
+    <div class="col-md-8 mx-auto">
+      <div class="card">
+        <div class="card-header">
+          <h5 class="mb-0">Edit Category</h5>
+        </div>
+        <div class="card-body">
+          {% if error %}
+              <div class="alert alert-danger">{{ error }}</div>
+          {% endif %}
+
+          <form action="{% url 'update_category' category.id %}" method="POST" enctype="multipart/form-data">
+            {% csrf_token %}
+            <div class="form-group">
+                <label for="support_users">Assign Support Users</label>
+                <select class="form-control" id="support_users" name="support_users" multiple>
+                    {% for support_user in support_users %}
+                        <option value="{{ support_user.id }}"
+                            {% if support_user in category.assigned_support_users.all %}selected{% endif %}>
+                            {{ support_user.user_name }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-group">
+              <label for="name">Category Name</label>
+              <input type="text" class="form-control form-control-lg" id="name" name="name" value="{{ category.cat_name }}" required>
+            </div>
+            <div class="form-group">
+              <label for="description">Category Description</label>
+              <textarea class="form-control form-control-lg" id="description" name="description">{{ category.cat_description }}</textarea>
+            </div>
+            <div class="form-group">
+              <label for="is_active">Status</label>
+              <select class="form-control" id="is_active" name="is_active">
+                <option value="true" {% if category.is_active %}selected{% endif %}>Active</option>
+                <option value="false" {% if not category.is_active %}selected{% endif %}>Inactive</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <button class="btn btn-block btn-primary btn-lg font-weight-medium auth-form-btn" type="submit">Update Category</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

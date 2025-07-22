@@ -1,0 +1,57 @@
+{% extends 'dashboard_headers.html' %}
+{% load static %}
+{% block content %}
+
+<div class="content-wrapper">
+  <div class="row mt-0">
+    <div class="col-md-8 mx-auto">
+      <div class="card">
+        <div class="card-header">
+          <h5 class="mb-0">Edit Task</h5>
+        </div>
+        <div class="card-body">
+          {% if error %}
+              <div class="alert alert-danger">{{ error }}</div>
+          {% endif %}
+
+          <form action="{% url 'update_task_template' task.id %}" method="POST" enctype="multipart/form-data">
+            {% csrf_token %}
+            <div class="form-group">
+              <label for="category_id">Category:</label>
+              <select id="category_id" name="category_id" class="form-control form-control-lg">
+                  {% for category in categories %}
+                      <option value="{{ category.id }}" {% if category.id == task.category.id %}selected{% endif %}>{{ category.cat_name }}</option>
+                  {% endfor %}
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="name">Task Name</label>
+              <input type="text" class="form-control form-control-lg" id="name" name="name" value="{{ task.task_name }}" required>
+            </div>
+            <div class="form-group">
+              <label for="description">Task Description</label>
+              <textarea class="form-control form-control-lg" id="description" name="description">{{ task.task_description }}</textarea>
+            </div>
+            <div class="form-group">
+              <label for="duration">Duration:</label>
+              <input type="number" id="duration" name="duration" class="form-control form-control-lg" value="{{ task.duration }}" required>
+            </div>
+            <div class="form-group">
+              <label for="priority">Priority:</label>
+              <select id="priority" name="priority" class="form-control form-control-lg">
+                  <option value="low" {% if task.priority == 'low' %}selected{% endif %}>Low</option>
+                  <option value="medium" {% if task.priority == 'medium' %}selected{% endif %}>Medium</option>
+                  <option value="high" {% if task.priority == 'high' %}selected{% endif %}>High</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <button class="btn btn-block btn-primary btn-lg font-weight-medium auth-form-btn" type="submit">Update Task</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

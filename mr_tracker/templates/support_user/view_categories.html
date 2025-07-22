@@ -1,0 +1,59 @@
+{% extends 'dashboard_headers.html' %}
+{% load static %}
+{% block content %}
+<div class="content-wrapper">
+    <div class="row mt-0">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="fas fa-list-alt"></i> My Category
+                    </h5>
+                </div>
+                <div class="table-responsive pt-3">
+                    <style>
+                        .table-bordered th, .table-bordered td {
+                            border: 1px solid #dee2e6 !important;
+                        }
+                    </style>
+                    <table class="table table-hover table-bordered project-orders-table">
+                        <thead style="background-color: #9eb3c9; color: #ffffff; font-weight: bold;">
+                            <tr>
+                                <th>#</th>
+                                <th>Category Name</th>
+                                <th>Description</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for category in categories %}
+                            <tr>
+                                <td>{{ forloop.counter }}</td>
+                                <td>{{ category.cat_name }}</td>
+                                <td>{{ category.cat_description|default:"No description" }}</td>
+                                <td>
+                                    {% if category.is_active %}
+                                        <span class="badge badge-success">Active</span>
+                                    {% else %}
+                                        <span class="badge badge-secondary">Inactive</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <a href="{% url 'support_view_category_tasks' category.id %}" 
+                                        class="btn btn-info">View Tasks</a>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="4">No categories assigned to you.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

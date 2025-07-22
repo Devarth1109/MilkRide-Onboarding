@@ -1,0 +1,153 @@
+{% extends 'dashboard_headers.html' %}
+{% load static %}
+{% block content %}
+<div class="content-wrapper">
+    <div class="row mt-0">
+        <div class="col-md-10 mx-auto">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Add Merchant</h5>
+                </div>
+                <div class="card-body">
+                    {% if error %}
+                        <div class="error">{{ error }}</div>
+                    {% endif %}
+                    <form action="{% url 'add_merchant' %}" method="POST" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        <div class="form-row">
+                            <div class="form-group col-md-4">
+                                <label for="assigned_manager">Assigned Manager</label>
+                                <select class="form-control form-control-lg" id="assigned_manager" name="assigned_manager" required>
+                                    <option value="">-- Select Support User --</option>
+                                    {% for user in support_users %}
+                                        <option value="{{ user.id }}">{{ user.user_name }} ({{ user.user_email }})</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="form-group col-md-4">
+                                <label for="name">Merchant Name</label>
+                                <input type="text" class="form-control form-control-lg" id="name" name="name"
+                                    placeholder="Merchant Name" required>
+                            </div>
+                            <div class="form-group col-md-4">
+                                <label for="email">Merchant Email</label>
+                                <input type="email" class="form-control form-control-lg" id="email" name="email"
+                                    placeholder="Merchant Email" required>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group col-md-4">
+                                <label for="phone">Merchant Phone</label>
+                                <input type="tel" class="form-control form-control-lg" id="phone" name="phone"
+                                    placeholder="Merchant Phone" required>
+                            </div>
+                            <div class="form-group col-md-4">
+                                <label for="city">Merchant City</label>
+                                <input type="text" class="form-control form-control-lg" id="city" name="city"
+                                    placeholder="Merchant City" required>
+                            </div>
+                            <div class="form-group col-md-4">
+                                <label for="onboarding_date">Onboarding Date</label>
+                                <input type="date" class="form-control form-control-lg" id="onboarding_date" name="onboarding_date"
+                                    placeholder="Onboarding Date" required>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group col-md-4">
+                                <label for="due_date">Due Date</label>
+                                <input type="date" class="form-control form-control-lg" id="due_date" name="due_date"
+                                    placeholder="Due Date" required>
+                            </div>
+                            <div class="form-group col-md-4">
+                                <label for="status">Status</label>
+                                <select class="form-control form-control-lg" id="status" name="status">
+                                    <option value="pending">Pending</option>
+                                    <option value="in_process">In Process</option>
+                                    <option value="on_hold">On Hold</option>
+                                    <option value="completed">Completed</option>
+                                </select>
+                            </div>
+                            <div class="form-group col-md-4">
+                                <label for="setup_fees">Setup Fees</label>
+                                <input type="number" class="form-control form-control-lg" id="setup_fees" name="setup_fees"
+                                    step="0.01" placeholder="Setup Fees" required>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group col-md-4">
+                                <label for="notes">Notes</label>
+                                <input class="form-control form-control-lg" id="notes" name="notes"
+                                    placeholder="Notes">
+                            </div>
+                            <div class="form-group col-md-4">
+                                <label for="amount_paid">Amount Paid</label>
+                                <input type="number" class="form-control form-control-lg" id="amount_paid" name="amount_paid"
+                                    step="0.01" placeholder="Amount Paid" required>
+                            </div>
+                            <div class="form-group col-md-4">
+                                <label for="amount_paid_date">Amount Paid Date</label>
+                                <input type="date" class="form-control form-control-lg" id="amount_paid_date" name="amount_paid_date"
+                                    placeholder="Amount Paid Date" required>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group col-md-4">
+                                <label for="pending_amount">Pending Amount</label>
+                                <input type="number" class="form-control form-control-lg" id="pending_amount" name="pending_amount"
+                                    step="0.01" placeholder="Pending Amount" required>
+                            </div>
+                            <div class="form-group col-md-4">
+                                <label for="pending_amount_due_date">Pending Amount Due Date</label>
+                                <input type="date" class="form-control form-control-lg" id="pending_amount_due_date" name="pending_amount_due_date"
+                                    placeholder="Pending Amount Due Date" required>
+                            </div>
+                            <div class="form-group col-md-4">
+                                <label for="payment_status">Payment Status</label>
+                                <select class="form-control form-control-lg" id="payment_status" name="payment_status">
+                                    <option value="unpaid">Unpaid</option>
+                                    <option value="paid">Paid</option>
+                                </select>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-block btn-lg font-weight-medium auth-form-btn">Add Merchant</button>
+                    </form>
+                    <div class="mt-3">
+                        <button class="btn btn-secondary btn-block btn-lg font-weight-medium auth-form-btn"
+                            onclick="window.location.href='{% url 'view_merchants' %}'">View Merchant</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    function updateFields() {
+        let setupFees = parseFloat(document.getElementById('setup_fees').value) || 0;
+        let amountPaid = parseFloat(document.getElementById('amount_paid').value) || 0;
+        let dueDate = document.getElementById('due_date').value;
+
+        // Pending Amount
+        let pending = setupFees - amountPaid;
+        document.getElementById('pending_amount').value = pending > 0 ? pending : 0;
+
+        // Payment Status
+        document.getElementById('payment_status').value = (amountPaid >= setupFees && setupFees > 0) ? 'paid' : 'unpaid';
+
+        // Pending Amount Due Date
+        if (pending > 0 && dueDate) {
+            document.getElementById('pending_amount_due_date').value = dueDate;
+        }
+    }
+
+    document.getElementById('setup_fees').addEventListener('input', updateFields);
+    document.getElementById('amount_paid').addEventListener('input', updateFields);
+    document.getElementById('due_date').addEventListener('change', updateFields);
+
+    // Initial calculation on page load
+    updateFields();
+});
+</script>
+
+{% endblock %}

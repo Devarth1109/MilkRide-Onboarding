@@ -1,0 +1,64 @@
+{% extends 'dashboard_headers.html' %}
+{% load static %}
+{% block content %}
+<div class="content-wrapper">
+    <div class="row mt-0">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="fas fa-list-alt"></i> Tasks for: {{ merchant.m_name }}
+                    </h5>
+                    <button class="btn btn-primary" onclick="window.location.href='{% url 'add_merchant_task' merchant.id %}'">Add New Task</button>
+                </div>
+                <div class="table-responsive pt-3">
+                    <style>
+                        .table-bordered th, .table-bordered td {
+                            border: 1px solid #dee2e6 !important;
+                        }
+                    </style>
+                    <table class="table table-hover table-bordered project-orders-table">
+                        <thead style="background-color: #9eb3c9; color: #ffffff; font-weight: bold;">
+                            <tr>
+                                <th>#</th>
+                                <th>Task Name</th>
+                                <th>Description</th>
+                                <th>Status</th>
+                                <th>Start Date</th>
+                                <th>Due Date</th>
+                                <th>End Date</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for task in tasks %}
+                            <tr>
+                                <td>{{ forloop.counter }}</td>
+                                <td>{{ task.custom_task_name }}</td>
+                                <td>{{ task.custom_task_description }}</td>
+                                <td>{{ task.status }}</td>
+                                <td>{{ task.start_date }}</td>
+                                <td>{{ task.due_date }}</td>
+                                <td>{{ task.end_date }}</td>
+                                <td>
+                                    <a href="{% url 'update_merchant_task' task.id %}" class="btn btn-warning">Edit</a>
+                                    <form action="{% url 'delete_merchant_task' task.id %}" method="POST" style="display:inline;">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-danger">Delete</button>
+                                    </form>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="8">No tasks available for this merchant.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

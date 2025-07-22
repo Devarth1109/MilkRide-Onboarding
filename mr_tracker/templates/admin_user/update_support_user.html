@@ -1,0 +1,64 @@
+{% extends 'dashboard_headers.html' %}
+{% load static %}
+{% block content %}
+
+<div class="content-wrapper">
+  <div class="row mt-0">
+    <div class="col-md-8 mx-auto">
+      <div class="card">
+        <div class="card-header">
+          <h5 class="mb-0">Edit Support User</h5>
+        </div>
+        <div class="card-body">
+          {% if error %}
+              <div class="alert alert-danger">{{ error }}</div>
+          {% endif %}
+
+          <form action="{% url 'update_support_user' support_user.id %}" method="POST" enctype="multipart/form-data">
+            {% csrf_token %}
+            <div class="form-row">
+              <div class="form-group col-md-6">
+                <label for="username">Support User Name</label>
+                <input type="text" class="form-control form-control-lg" id="username" name="username" value="{{ support_user.user_name }}" required placeholder="Support User Name">
+              </div>
+              <div class="form-group col-md-6">
+                <label for="email">Support User Email</label>
+                <input type="email" class="form-control form-control-lg" id="email" name="email" value="{{ support_user.user_email }}" required placeholder="Support User Email">
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group col-md-6">
+                <label for="phone">Support User Phone</label>
+                <input type="tel" class="form-control form-control-lg" id="phone" name="phone" value="{{ support_user.user_phone }}" required placeholder="Support User Phone">
+              </div>
+              <div class="form-group col-md-6">
+                <label for="status">Status</label>
+                <select class="form-control form-control-lg" id="status" name="status" required>
+                  <option value="active" {% if support_user.user_status == 'active' %}selected{% endif %}>Active</option>
+                  <option value="inactive" {% if support_user.user_status == 'inactive' %}selected{% endif %}>Inactive</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group col-md-6">
+                <label for="pswd">New Password</label>
+                <input type="password" class="form-control form-control-lg" id="pswd" name="pswd" placeholder="New Password (optional)">
+              </div>
+              <div class="form-group col-md-6">
+                <label for="c_pswd">Confirm New Password</label>
+                <input type="password" class="form-control form-control-lg" id="c_pswd" name="c_pswd" placeholder="Confirm New Password (optional)">
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group col-md-12">
+                <button class="btn btn-block btn-primary btn-lg font-weight-medium auth-form-btn" type="submit">Update Support User</button>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

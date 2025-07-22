@@ -1,0 +1,145 @@
+{% extends 'dashboard_headers.html' %}
+{% load static %}
+{% block content %}
+
+<div class="content-wrapper">
+  <div class="row mt-0">
+    <div class="col-md-10 mx-auto">
+      <div class="card">
+        <div class="card-header">
+          <h5 class="mb-0">Edit Merchant</h5>
+        </div>
+        <div class="card-body">
+          {% if error %}
+              <div class="alert alert-danger">{{ error }}</div>
+          {% endif %}
+
+          <form action="{% url 'update_merchant' merchant.id %}" method="POST" enctype="multipart/form-data">
+            {% csrf_token %}
+            <div class="form-row">
+              <div class="form-group col-md-4">
+                <label for="name">Merchant Name</label>
+                <input type="text" class="form-control form-control-lg" id="name" name="name" value="{{ merchant.m_name }}" required placeholder="Merchant Name">
+              </div>
+              <div class="form-group col-md-4">
+                <label for="email">Merchant Email</label>
+                <input type="email" class="form-control form-control-lg" id="email" name="email" value="{{ merchant.m_email }}" required placeholder="Merchant Email">
+              </div>
+              <div class="form-group col-md-4">
+                <label for="phone">Merchant Phone</label>
+                <input type="text" class="form-control form-control-lg" id="phone" name="phone" value="{{ merchant.m_phone }}" required placeholder="Merchant Phone">
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group col-md-4">
+                <label for="city">Merchant City</label>
+                <input type="text" class="form-control form-control-lg" id="city" name="city" value="{{ merchant.m_city }}" required placeholder="Merchant City">
+              </div>
+              <div class="form-group col-md-4">
+                <label for="onboarding_date">Onboarding Date</label>
+                <input type="date" class="form-control form-control-lg" id="onboarding_date" name="onboarding_date" value="{{ merchant.m_onboarding_date|date:'Y-m-d' }}">
+              </div>
+              <div class="form-group col-md-4">
+                <label for="due_date">Due Date</label>
+                <input type="date" class="form-control form-control-lg" id="due_date" name="due_date" value="{{ merchant.m_due_date|date:'Y-m-d' }}">
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group col-md-4">
+                <label for="status">Status</label>
+                <select class="form-control form-control-lg" id="status" name="status" required>
+                  <option value="" disabled>Select Status</option>
+                  <option value="pending" {% if merchant.m_status == "pending" %}selected{% endif %}>Pending</option>
+                  <option value="in_process" {% if merchant.m_status == "in_process" %}selected{% endif %}>In Process</option>
+                  <option value="on_hold" {% if merchant.m_status == "on_hold" %}selected{% endif %}>On Hold</option>
+                  <option value="completed" {% if merchant.m_status == "completed" %}selected{% endif %}>Completed</option>
+                </select>
+              </div>
+              <div class="form-group col-md-4">
+                <label for="setup_fees">Setup Fees</label>
+                <input type="number" class="form-control form-control-lg" id="setup_fees" name="setup_fees" value="{{ merchant.m_setup_fees }}" step="0.01" placeholder="Setup Fees">
+              </div>
+              <div class="form-group col-md-4">
+                <label for="amount_paid">Amount Paid</label>
+                <input type="number" class="form-control form-control-lg" id="amount_paid" name="amount_paid" value="{{ merchant.m_amount_paid }}" step="0.01" placeholder="Amount Paid">
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group col-md-4">
+                <label for="amount_paid_date">Amount Paid Date</label>
+                <input type="date" class="form-control form-control-lg" id="amount_paid_date" name="amount_paid_date" value="{{ merchant.m_amount_paid_date|date:'Y-m-d' }}">
+              </div>
+              <div class="form-group col-md-4">
+                <label for="pending_amount">Pending Amount</label>
+                <input type="number" class="form-control form-control-lg" id="pending_amount" name="pending_amount" value="{{ merchant.m_pending_amount }}" step="0.01" readonly>
+              </div>
+              <div class="form-group col-md-4">
+                <label for="pending_amount_due_date">Pending Amount Due Date</label>
+                <input type="date" class="form-control form-control-lg" id="pending_amount_due_date" name="pending_amount_due_date" value="{{ merchant.m_pending_amount_due_date|date:'Y-m-d' }}">
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group col-md-4">
+                <label for="payment_status">Payment Status</label>
+                <select class="form-control form-control-lg" id="payment_status" name="payment_status">
+                  <option value="unpaid" {% if merchant.m_payment_status == 'unpaid' %}selected{% endif %}>Unpaid</option>
+                  <option value="paid" {% if merchant.m_payment_status == 'paid' %}selected{% endif %}>Paid</option>
+                </select>
+              </div>
+              <div class="form-group col-md-4">
+                <label for="assigned_manager">Assign Support User:</label>
+                <select class="form-control form-control-lg" id="assigned_manager" name="assigned_manager" required>
+                  <option value="">-- Select Support User --</option>
+                  {% for user in support_users %}
+                      <option value="{{ user.id }}" {% if merchant.assigned_manager and merchant.assigned_manager.id == user.id %}selected{% endif %}>
+                          {{ user.user_name }} ({{ user.user_email }})
+                      </option>
+                  {% endfor %}
+                </select>
+              </div>
+              <div class="form-group col-md-4">
+                <label for="notes">Notes</label>
+                <textarea class="form-control form-control-lg" id="notes" name="notes" placeholder="Notes">{{ merchant.notes }}</textarea>
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group col-md-12">
+                <button class="btn btn-block btn-primary btn-lg font-weight-medium auth-form-btn" type="submit">Update Merchant</button>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    function updateFields() {
+        let setupFees = parseFloat(document.getElementById('setup_fees').value) || 0;
+        let amountPaid = parseFloat(document.getElementById('amount_paid').value) || 0;
+        let dueDate = document.getElementById('due_date').value;
+
+        // Pending Amount
+        let pending = setupFees - amountPaid;
+        document.getElementById('pending_amount').value = pending > 0 ? pending : 0;
+
+        // Payment Status
+        document.getElementById('payment_status').value = (amountPaid >= setupFees && setupFees > 0) ? 'paid' : 'unpaid';
+
+        // Pending Amount Due Date
+        if (pending > 0 && dueDate) {
+            document.getElementById('pending_amount_due_date').value = dueDate;
+        }
+    }
+
+    document.getElementById('setup_fees').addEventListener('input', updateFields);
+    document.getElementById('amount_paid').addEventListener('input', updateFields);
+    document.getElementById('due_date').addEventListener('change', updateFields);
+
+    // Initial calculation on page load
+    updateFields();
+});
+</script>
+{% endblock %}

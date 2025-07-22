@@ -1,0 +1,246 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>MilkRide Onboard Tracking</title>
+    <!-- base:css -->
+    <link rel="stylesheet" href="{% static 'vendors/typicons/typicons.css' %}">
+    <link rel="stylesheet" href="{% static 'vendors/css/vendor.bundle.base.css' %}">
+    <!-- endinject -->
+    <!-- plugin css for this page -->
+    <!-- End plugin css for this page -->
+    <!-- inject:css -->
+    <link rel="stylesheet" href="{% static 'css/vertical-layout-light/style.css' %}">
+    <link rel="stylesheet" href="{% static 'css/custom_style.css' %}">
+    <!-- endinject -->
+    <link rel="shortcut icon" href="{% static 'images/favicon.png' %}" />
+    
+    <style>
+        /* Navigation Highlight Styles */
+        .nav-item .nav-link.active {
+            background-color: #844fc1 !important;
+            color: #ffffff !important;
+            border-radius: 6px;
+            box-shadow: 0 2px 4px rgba(76, 132, 255, 0.3);
+            margin: 2px 8px;
+        }
+
+        .nav-item .nav-link.active .menu-icon {
+            color: #ffffff !important;
+        }
+
+        .nav-item .nav-link:hover:not(.active) {
+            background-color: #f8f9fa;
+            border-radius: 6px;
+            margin: 2px 8px;
+            transition: all 0.3s ease;
+        }
+
+        .sub-menu .nav-item .nav-link.active {
+            background-color: rgba(76, 132, 255, 0.2) !important;
+            color: #844fc1 !important;
+            font-weight: 500;
+            margin: 2px 16px;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container-scroller">
+        <!-- partial:partials/_navbar.html -->
+        <nav class="navbar col-lg-12 col-12 p-0 fixed-top d-flex flex-row">
+
+            <div class="navbar-menu-wrapper d-flex align-items-center justify-content-end">
+                <ul class="navbar-nav mr-lg-2">
+                    <li class="nav-item nav-profile dropdown">
+                        <a class="nav-link" href="#" data-toggle="dropdown" id="profileDropdown">
+                            {% if user %}
+                            <span class="nav-profile-name">{{ user.user_name }} - {{ user.role }}</span>
+                            {% endif %}
+                        </a>
+                    </li>
+                </ul>
+                <ul class="navbar-nav navbar-nav-right">
+                    <li class="nav-item nav-date dropdown">
+                        <a class="nav-link d-flex justify-content-center align-items-center" href="javascript:;">
+                            <h6 class="date mb-0">Today : {{ today }}</h6>
+                            <i class="typcn typcn-calendar"></i>
+                        </a>
+                    </li>
+                </ul>
+                <button class="navbar-toggler navbar-toggler-right d-lg-none align-self-center" type="button"
+                    data-toggle="offcanvas">
+                    <span class="typcn typcn-th-menu"></span>
+                </button>
+            </div>
+        </nav>
+
+        <!-- partial -->
+        <nav class="navbar-breadcrumb col-xl-12 col-12 d-flex flex-row p-0">
+            <div class="navbar-menu-wrapper d-flex align-items-center justify-content-between w-100">
+                <ul class="navbar-nav mr-lg-2">
+                    <li class="nav-item ml-0">
+                        <h4 class="mb-0">Dashboard</h4>
+                    </li>
+                </ul>
+                <ul class="navbar-nav">
+                    <li class="nav-item">
+                        <div class="d-flex align-items-baseline">
+                            <p class="mb-0">Home</p>
+                            <i class="typcn typcn-chevron-right"></i>
+                            <p class="mb-0">Main Dashboard</p>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+        </nav>
+        
+        <div class="container-fluid page-body-wrapper">
+            <nav class="sidebar sidebar-offcanvas" id="sidebar">
+                <ul class="nav align-items-start" style="margin: 0px; padding: 0px;">
+                    {% if user.role == 'admin' %}
+                    <li class="nav-item" style="width: 100%;">
+                        <a class="nav-link" href="{% url 'view_support_users' %}" data-page="support_users">
+                            <i class="typcn typcn-group-outline menu-icon"></i>
+                            <span class="menu-title">Support Team</span>
+                        </a>
+                    </li>
+                    <li class="nav-item" style="width: 100%;">
+                        <a class="nav-link" href="{% url 'view_merchants' %}" data-page="merchants">
+                            <i class="typcn typcn-shopping-cart menu-icon"></i>
+                            <span class="menu-title">Merchants</span>
+                        </a>
+                    </li>
+                    <li class="nav-item" style="width: 100%;">
+                        <a class="nav-link" href="{% url 'view_categories' %}" data-page="categories">
+                            <i class="typcn typcn-tags menu-icon"></i>
+                            <span class="menu-title">Categories</span>
+                        </a>
+                    </li>
+                    <li class="nav-item" style="width: 100%;">
+                        <a class="nav-link" href="{% url 'view_task_templates' %}" data-page="tasks">
+                            <i class="typcn typcn-clipboard menu-icon"></i>
+                            <span class="menu-title">Tasks</span>
+                        </a>
+                    </li>
+                    {% elif user.role == 'support' %}
+                    <li class="nav-item" style="width: 100%;">
+                        <a class="nav-link" href="{% url 'support_view_merchants' %}" data-page="support_merchants">
+                            <i class="typcn typcn-shopping-cart menu-icon"></i>
+                            <span class="menu-title">My Merchants</span>
+                        </a>
+                    </li>
+                    <li class="nav-item" style="width: 100%;">
+                        <a class="nav-link" href="{% url 'support_view_categories' %}" data-page="support_categories">
+                            <i class="typcn typcn-tags menu-icon"></i>
+                            <span class="menu-title">Categories</span>
+                        </a>
+                    </li>
+                    {% endif %}
+                    <li class="nav-item" style="width: 100%;">
+                        <a class="nav-link" data-toggle="collapse" href="#auth" aria-expanded="false" aria-controls="auth">
+                            <i class="typcn typcn-user-add-outline menu-icon"></i>
+                            <span class="menu-title">User Pages</span>
+                            <i class="menu-arrow"></i>
+                        </a>
+                        <div class="collapse" id="auth">
+                        <ul class="nav flex-column sub-menu">
+                            <li class="nav-item" style="width: 100%;"> 
+                                <a class="nav-link" href="{% url 'logout' %}" data-page="logout"> Logout </a>
+                            </li>
+                        </ul>
+                        </div>
+                    </li>
+                </ul>
+            </nav>
+
+            <div class="main-panel">
+                {% block content %}
+                <!-- page content here -->
+                {% endblock %}
+                <!-- footer here -->
+            </div>
+        </div>
+        <!-- main-panel ends -->
+    </div>
+    <!-- page-body-wrapper ends -->
+    </div>
+    <!-- container-scroller -->
+
+    <!-- base:js -->
+    <script src="{% static 'vendors/js/vendor.bundle.base.js' %}"></script>
+    <!-- endinject -->
+    <!-- Plugin js for this page-->
+    <script src="{% static 'vendors/chart.js/Chart.min.js' %}"></script>
+    <!-- End plugin js for this page-->
+    <!-- inject:js -->
+    <script src="{% static 'js/off-canvas.js' %}"></script>
+    <script src="{% static 'js/hoverable-collapse.js' %}"></script>
+    <script src="{% static 'js/template.js' %}"></script>
+    <script src="{% static 'js/settings.js' %}"></script>
+    <script src="{% static 'js/todolist.js' %}"></script>
+    <!-- endinject -->
+    <!-- Custom js for this page-->
+    <script src="{% static 'js/dashboard.js' %}"></script>
+    <!-- End custom js for this page-->
+    
+    <script>
+        // Navigation highlighting script
+        document.addEventListener('DOMContentLoaded', function() {
+            function highlightActiveNav() {
+                const currentUrl = window.location.pathname;
+                const navLinks = document.querySelectorAll('.sidebar .nav-link');
+                
+                navLinks.forEach(link => {
+                    link.classList.remove('active');
+                    
+                    const linkHref = link.getAttribute('href');
+                    if (linkHref && currentUrl === linkHref) {
+                        link.classList.add('active');
+                        
+                        // If it's in a collapsible menu, expand the parent
+                        const parentCollapse = link.closest('.collapse');
+                        if (parentCollapse) {
+                            parentCollapse.classList.add('show');
+                            const toggleBtn = document.querySelector(`[href="#${parentCollapse.id}"]`);
+                            if (toggleBtn) {
+                                toggleBtn.setAttribute('aria-expanded', 'true');
+                                toggleBtn.classList.remove('collapsed');
+                            }
+                        }
+                    }
+                });
+            }
+            
+            function setupClickHighlight() {
+                const navLinks = document.querySelectorAll('.sidebar .nav-link');
+                
+                navLinks.forEach(link => {
+                    link.addEventListener('click', function(e) {
+                        // Don't highlight toggle buttons
+                        if (this.hasAttribute('data-toggle')) return;
+                        
+                        // Remove active class from all nav links
+                        navLinks.forEach(otherLink => {
+                            otherLink.classList.remove('active');
+                        });
+                        
+                        // Add active class to clicked link
+                        this.classList.add('active');
+                    });
+                });
+            }
+            
+            // Initialize
+            highlightActiveNav();
+            setupClickHighlight();
+        });
+    </script>
+</body>
+
+</html>
