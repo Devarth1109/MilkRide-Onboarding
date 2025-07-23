@@ -22,7 +22,7 @@
     <style>
         /* Navigation Highlight Styles */
         .nav-item .nav-link.active {
-            background-color: #844fc1 !important;
+            background-color: #3697b4 !important;
             color: #ffffff !important;
             border-radius: 6px;
             box-shadow: 0 2px 4px rgba(76, 132, 255, 0.3);
@@ -58,11 +58,9 @@
             <div class="navbar-menu-wrapper d-flex align-items-center justify-content-end">
                 <ul class="navbar-nav mr-lg-2">
                     <li class="nav-item nav-profile dropdown">
-                        <a class="nav-link" href="#" data-toggle="dropdown" id="profileDropdown">
-                            {% if user %}
-                            <span class="nav-profile-name">{{ user.user_name }} - {{ user.role }}</span>
-                            {% endif %}
-                        </a>
+                        <div class="brand-logo">
+                            <img src="{% static 'images/milkridelogo.png' %}" alt="MilkRide Logo" style="height: 48px; width: 180px; object-fit: contain;">
+                        </div>
                     </li>
                 </ul>
                 <ul class="navbar-nav navbar-nav-right">
@@ -101,7 +99,7 @@
         </nav>
         
         <div class="container-fluid page-body-wrapper">
-            <nav class="sidebar sidebar-offcanvas" id="sidebar">
+            <nav class="sidebar sidebar-offcanvas" id="sidebar" style="background-color: #dde7f1;">
                 <ul class="nav align-items-start" style="margin: 0px; padding: 0px;">
                     {% if user.role == 'admin' %}
                     <li class="nav-item" style="width: 100%;">

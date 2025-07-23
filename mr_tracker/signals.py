@@ -172,3 +172,13 @@ Onboarding Team
                 [support_user.user_email],
                 fail_silently=True,
             )
+
+@receiver(post_save, sender=MerchantTask)
+def update_merchant_status(sender, instance, **kwargs):
+    merchant = instance.merchant
+    all_tasks = MerchantTask.objects.filter(merchant=merchant)
+    if all_tasks.exists() and all(task.status == 'completed' for task in all_tasks):
+        merchant.m_status = 'completed'
+    else:
+        merchant.m_status = 'pending'
+    merchant.save(update_fields=['m_status'])

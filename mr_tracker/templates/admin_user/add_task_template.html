@@ -5,8 +5,8 @@
 <div class="content-wrapper">
     <div class="row mt-0">
         <div class="col-md-8 mx-auto">
-            <div class="card">
-                <div class="card-header">
+            <div class="card" style="background-color: #d3e4f4;">
+                <div class="card-header" style="background-color: #3697b4; color: #ffffff;">
                     <h5 class="mb-0">Add Task</h5>
                 </div>
                 <div class="card-body">
@@ -43,8 +43,12 @@
                                 <option value="high">High</option>
                             </select>
                         </div>
-                        <button class="btn btn-primary btn-block btn-lg font-weight-medium auth-form-btn" type="submit">Add Task Template</button>
+                        <button class="btn btn-info btn-block btn-lg font-weight-medium auth-form-btn" type="submit">Add Task Template</button>
                     </form>
+                    <div class="mt-3">
+                        <button class="btn btn-secondary btn-block btn-lg font-weight-medium auth-form-btn"
+                            onclick="window.location.href='{% url 'view_task_templates' %}'">View Task Templates</button>
+                    </div>
                 </div>
             </div>
         </div>

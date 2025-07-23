@@ -5,8 +5,8 @@
 <div class="content-wrapper">
     <div class="row mt-0">
         <div class="col-md-8 offset-md-2">
-            <div class="card">
-                <div class="card-header d-flex justify-content-between align-items-center">
+            <div class="card" style="background-color: #d3e4f4;">
+                <div class="card-header d-flex justify-content-between align-items-center" style="background-color: #3697b4; color: #ffffff;">
                     <h5 class="mb-0">
                         <i class="fas fa-tasks"></i> Task Details for Merchant: {{ merchant.m_name }}
                     </h5>
@@ -25,7 +25,7 @@
                                 <option value="on_hold" {% if task.status == 'on_hold' %}selected{% endif %}>On Hold</option>
                                 <option value="completed" {% if task.status == 'completed' %}selected{% endif %}>Completed</option>
                             </select>
-                            <button type="submit" class="btn btn-primary btn-sm ml-2">Update Status</button>
+                            <button type="submit" class="btn btn-info btn-sm ml-2">Update Status</button>
                         </p>
                     </form>
                     <p><strong>Start Date:</strong> {{ task.start_date }}</p>

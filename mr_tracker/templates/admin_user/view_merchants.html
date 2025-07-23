@@ -5,11 +5,11 @@
     <div class="row mt-0">
         <div class="col-md-12">
             <div class="card">
-                <div class="card-header d-flex justify-content-between align-items-center">
+                <div class="card-header d-flex justify-content-between align-items-center" style="background-color: #3697b4; color: #ffffff;">
                     <h5 class="mb-0">
                         <i class="fas fa-list-alt"></i> Merchants Management
                     </h5>
-                    <button class="btn btn-primary" onclick="window.location.href='{% url 'add_merchant' %}'">Add New Merchant</button>
+                    <button class="btn btn-light" onclick="window.location.href='{% url 'add_merchant' %}'">+ ADD</button>
                 </div>
                 <div class="table-responsive pt-3">
                     <style>
@@ -17,8 +17,8 @@
                             border: 1px solid #dee2e6 !important;
                         }
                     </style>
-                    <table class="table table-hover table-bordered project-orders-table">
-                        <thead style="background-color: #9eb3c9; color: #ffffff; font-weight: bold;">
+                    <table class="table table-striped table-hover table-bordered project-orders-table">
+                        <thead style="background-color: #64bdd3; color: #ffffff; font-weight: bold;">
                             <tr>
                                 <th>#</th>
                                 <th>Name</th>

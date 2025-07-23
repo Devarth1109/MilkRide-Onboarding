@@ -180,18 +180,6 @@ class MerchantTask(models.Model):
         if self.status == 'completed' and not self.end_date:
             from django.utils import timezone
             self.end_date = timezone.now().date()
-
-        # Update merchant status BEFORE saving the task
-        if self.merchant:
-            all_tasks = MerchantTask.objects.filter(merchant=self.merchant).exclude(pk=self.pk)
-            # Include current instance's status
-            all_statuses = [self.status] + [task.status for task in all_tasks]
-            if all_statuses and all(status == 'completed' for status in all_statuses):
-                self.merchant.m_status = 'completed'
-            else:
-                self.merchant.m_status = 'pending'
-            self.merchant.save()
-
         super().save(*args, **kwargs)
 
     def __str__(self):

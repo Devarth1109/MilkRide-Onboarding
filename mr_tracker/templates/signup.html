@@ -27,11 +27,9 @@
                     <div class="col-lg-4 mx-auto">
                         <div class="auth-form-light text-left py-5 px-4 px-sm-5">
                             <div class="brand-logo">
-                                <img src="{% static 'images/logo-dark.svg' %}" alt="logo">
+                                <img src="{% static 'images/milkridelogo.png' %}" alt="MilkRide Logo" style="max-width: 100%; height: auto;">
                             </div>
                             <h4>Admin Signup</h4>
-                            <h8 class="font-weight-light">Only admin signup is allowed. Support users must be added by
-                                an admin.</h8>
                             {% if error %}
                             <div class="error">{{ error }}</div>
                             {% endif %}
@@ -65,11 +63,11 @@
                                     </select>
                                 </div>
                                 <div class="mt-3">
-                                    <button class="btn btn-block btn-primary btn-lg font-weight-medium auth-form-btn"
+                                    <button class="btn btn-block btn-info btn-lg font-weight-medium auth-form-btn"
                                         type="submit">SIGN UP</button>
                                 </div>
                                 <div class="text-center mt-4 font-weight-light">
-                                    Already have an account? <a href="{% url 'login' %}" class="text-primary">login</a>
+                                    Already have an account? <a href="{% url 'login' %}" class="text-info">login</a>
                                 </div>
                             </form>
                         </div>
