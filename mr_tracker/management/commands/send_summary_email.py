@@ -23,28 +23,62 @@ class Command(BaseCommand):
             if not tasks.exists():
                 continue
 
-            # Summary counts
-            total_merchants = merchants.count()
-            total_tasks = tasks.count()
-            total_completed_tasks = tasks.filter(status='completed').count()
-            total_completed_merchants = merchants.filter(m_status='completed').count()
-            total_overdue_tasks = tasks.filter(due_date__lt=today).exclude(status='completed').count()
-            total_pending_inprogress_tasks = tasks.filter(status__in=['pending', 'in_progress']).count()
+            # Build merchant-task summary table
+            merchant_tables = ""
+            for merchant in merchants:
+                merchant_tasks = tasks.filter(merchant=merchant)
+                if not merchant_tasks.exists():
+                    continue
+
+                # Count tasks by status
+                completed_count = merchant_tasks.filter(status='completed').count()
+                pending_count = merchant_tasks.filter(status='pending').count()
+                on_hold_count = merchant_tasks.filter(status='on_hold').count()
+                in_progress_count = merchant_tasks.filter(status='in_progress').count()
+
+                merchant_tables += f"""
+                <h4>
+                    Merchant: {merchant.m_name}
+                    <span style="font-size: 13px; font-weight: normal;">
+                        (Completed: {completed_count} | Pending: {pending_count} | On Hold: {on_hold_count} | In Progress: {in_progress_count})
+                    </span>
+                </h4>
+                <table border="1" cellpadding="5" cellspacing="0" style="border-collapse:collapse;">
+                    <tr>
+                        <th>Task</th>
+                        <th>Status</th>
+                        <th>Due Date</th>
+                        <th>Ontime?</th>
+                    </tr>
+                """
+                for task in merchant_tasks:
+                    due_date = task.due_date.strftime('%Y-%m-%d') if task.due_date else ''
+                    ontime = ""
+                    if task.end_date and task.due_date:
+                        ontime = "Yes" if task.end_date <= task.due_date else "No"
+                    elif task.status == 'completed':
+                        ontime = "N/A"
+                    merchant_tables += f"""
+                    <tr>
+                        <td>
+                            {task.custom_task_name}
+                            <br>
+                            <small>{task.category.cat_name if task.category else ''}</small>
+                        </td>
+                        <td>{task.status.replace('_', ' ').title()}</td>
+                        <td>{due_date}</td>
+                        <td>{ontime}</td>
+                    </tr>
+                    """
+                merchant_tables += "</table><br>"
 
             subject = "Summary email to check merchant progress"
             message = f"""
             <html>
             <body>
             <p>Hi {user.user_name},</p>
-            <p>You have merchants and it's assigned task, it's details is as below</p>
-            <ul>
-                <li><b>Total merchants:</b> {total_merchants}</li>
-                <li><b>Total merchant's tasks:</b> {total_tasks}</li>
-                <li><b>Total completed merchant's tasks:</b> {total_completed_tasks}</li>
-                <li><b>Total completed merchants:</b> {total_completed_merchants}</li>
-                <li><b>Total overdue tasks:</b> {total_overdue_tasks}</li>
-                <li><b>Total pending or in progress tasks:</b> {total_pending_inprogress_tasks}</li>
-            </ul>
+            <p>You have merchants and their assigned tasks. Details are as below:</p>
+            {merchant_tables}
             <p>Thanks,<br>Onboarding Team</p>
             </body>
             </html>

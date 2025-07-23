@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import User, Merchant, Category, TaskTemplate, MerchantTask
+from .models import *
 
 class UserAdmin(admin.ModelAdmin):
     list_display = ('user_name', 'user_email', 'role', 'user_status')
@@ -29,3 +29,5 @@ admin.site.register(Merchant, MerchantAdmin)
 admin.site.register(Category, CategoryAdmin)
 admin.site.register(TaskTemplate, TaskTemplateAdmin)
 admin.site.register(MerchantTask, MerchantTaskAdmin)
+
+admin.site.register(MerchantTaskHistory)

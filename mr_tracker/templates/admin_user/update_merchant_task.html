@@ -19,12 +19,13 @@
             <div class="form-row">
               <div class="form-group col-md-6">
                 <label for="task_template_id">Select Task Template:</label>
-                <select class="form-control form-control-lg" id="task_template_id" name="task_template_id" onchange="fillTemplateFields()">
+                <select class="form-control form-control-lg" id="task_template_id" name="task_template_id" onchange="fillTemplateFields(); updateDueDate();">
                   <option value="" {% if not task.task_template %}selected{% endif %}>+ ADD</option>
                   {% for template in task_templates %}
                     <option value="{{ template.id }}"
                       data-name="{{ template.task_name|escapejs }}"
                       data-description="{{ template.task_description|escapejs }}"
+                      data-duration="{{ template.duration }}"
                       {% if task.task_template and template.id == task.task_template.id %}selected{% endif %}
                     >{{ template.task_name }}</option>
                   {% endfor %}
@@ -49,6 +50,13 @@
               <div class="form-group col-md-6">
                 <label for="description">Description</label>
                 <textarea id="description" name="description" class="form-control form-control-lg" {% if task.task_template %}readonly{% endif %} required>{% if task.task_template %}{{ task.task_template.task_description }}{% else %}{{ task.custom_task_description }}{% endif %}</textarea>
+              </div>
+            </div>
+            <!-- Custom duration input, only shown for custom tasks -->
+            <div class="form-row" id="custom-duration-row" style="display: none;">
+              <div class="form-group col-md-6">
+                <label for="duration">Duration (days)</label>
+                <input type="number" class="form-control form-control-lg" id="duration" name="duration" min="1" value="{% if not task.task_template %}{{ task.duration|default:1 }}{% else %}1{% endif %}">
               </div>
             </div>
             <div class="form-row">
@@ -94,19 +102,67 @@ function fillTemplateFields() {
     var selected = select.options[select.selectedIndex];
     var name = selected.getAttribute('data-name');
     var description = selected.getAttribute('data-description');
+    var duration = selected.getAttribute('data-duration');
+    var customDurationRow = document.getElementById('custom-duration-row');
+    var durationInput = document.getElementById('duration');
+
     if (select.value) {
         document.getElementById('name').value = name;
         document.getElementById('description').value = description;
         document.getElementById('name').readOnly = true;
         document.getElementById('description').readOnly = true;
+        if (customDurationRow) customDurationRow.style.display = 'none';
+        if (durationInput) durationInput.value = duration || 1;
     } else {
         document.getElementById('name').value = "{{ task.custom_task_name|escapejs }}";
         document.getElementById('description').value = "{{ task.custom_task_description|escapejs }}";
         document.getElementById('name').readOnly = false;
         document.getElementById('description').readOnly = false;
+        if (customDurationRow) customDurationRow.style.display = '';
+        if (durationInput && !durationInput.value) durationInput.value = 1;
     }
 }
-window.onload = fillTemplateFields;
+
+// Update due date based on start date and duration
+function updateDueDate() {
+    var select = document.getElementById('task_template_id');
+    var selected = select.options[select.selectedIndex];
+    var duration = 1;
+    if (select.value && selected.getAttribute('data-duration')) {
+        duration = parseInt(selected.getAttribute('data-duration'));
+    } else {
+        var durationInput = document.getElementById('duration');
+        if (durationInput && durationInput.value) {
+            duration = parseInt(durationInput.value);
+        }
+    }
+    var startDateInput = document.getElementById('start_date');
+    var dueDateInput = document.getElementById('due_date');
+    if (startDateInput.value && duration && !isNaN(duration)) {
+        var startDate = new Date(startDateInput.value);
+        startDate.setDate(startDate.getDate() + duration);
+        var yyyy = startDate.getFullYear();
+        var mm = String(startDate.getMonth() + 1).padStart(2, '0');
+        var dd = String(startDate.getDate()).padStart(2, '0');
+        dueDateInput.value = yyyy + '-' + mm + '-' + dd;
+    }
+}
+
+// Listen for changes
+document.getElementById('task_template_id').addEventListener('change', function() {
+    fillTemplateFields();
+    updateDueDate();
+});
+document.getElementById('start_date').addEventListener('change', updateDueDate);
+var durationInput = document.getElementById('duration');
+if (durationInput) {
+    durationInput.addEventListener('input', updateDueDate);
+}
+
+window.onload = function() {
+    fillTemplateFields();
+    updateDueDate();
+};
 </script>
 
 {% endblock %}

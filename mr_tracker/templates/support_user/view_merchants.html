@@ -27,7 +27,6 @@
                                 <th>Status</th>
                                 <th>Onboarding Date</th>
                                 <th>Due Date</th>
-                                <th>Progress</th>
                                 <th>Tasks</th>
                             </tr>
                         </thead>
@@ -42,19 +41,6 @@
                                     <td>{{ merchant.m_status }}</td>
                                     <td>{{ merchant.m_onboarding_date }}</td>
                                     <td>{{ merchant.m_due_date }}</td>
-                                    <td style="min-width: 150px;">
-                                        {% if merchant.m_onboarding_date and merchant.m_due_date %}
-                                            <div class="progress-container" data-onboarding="{{ merchant.m_onboarding_date|date:'Y-m-d' }}" data-due="{{ merchant.m_due_date|date:'Y-m-d' }}">
-                                                <div class="progress" style="height: 20px;">
-                                                    <div class="progress-bar" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
-                                                        <span class="progress-text">0%</span>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        {% else %}
-                                            <span class="text-muted">N/A</span>
-                                        {% endif %}
-                                    </td>
                                     <td>
                                         <a href="{% url 'support_view_merchant_tasks' merchant.id %}" class="btn btn-info">View Tasks</a>
                                     </td>
@@ -71,139 +57,4 @@
         </div>
     </div>
 </div>
-
-<style>
-    .progress-container {
-        position: relative;
-    }
-    
-    .progress {
-        border-radius: 10px;
-        overflow: hidden;
-        background-color: #e9ecef;
-    }
-    
-    .progress-bar {
-        transition: width 0.6s ease, background-color 0.3s ease;
-        border-radius: 10px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 12px;
-        font-weight: bold;
-        color: white;
-        text-shadow: 1px 1px 1px rgba(0,0,0,0.5);
-    }
-    
-    .progress-text {
-        position: absolute;
-        width: 100%;
-        text-align: center;
-        line-height: 20px;
-        color: #333;
-        font-weight: bold;
-        font-size: 11px;
-        z-index: 1;
-    }
-    
-    .progress-green {
-        background: linear-gradient(45deg, #28a745, #34ce57);
-    }
-    
-    .progress-yellow {
-        background: linear-gradient(45deg, #ffc107, #ffcd39);
-    }
-    
-    .progress-orange {
-        background: linear-gradient(45deg, #fd7e14, #ff922b);
-    }
-    
-    .progress-red {
-        background: linear-gradient(45deg, #dc3545, #e55565);
-    }
-</style>
-
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        function calculateProgress() {
-            const progressContainers = document.querySelectorAll('.progress-container');
-            const today = new Date();
-            today.setHours(0, 0, 0, 0); // Reset time to beginning of day
-            
-            progressContainers.forEach(container => {
-                const onboardingDate = new Date(container.dataset.onboarding);
-                const dueDate = new Date(container.dataset.due);
-                const progressBar = container.querySelector('.progress-bar');
-                const progressText = container.querySelector('.progress-text');
-                
-                if (onboardingDate && dueDate) {
-                    // Calculate total days between onboarding and due date
-                    const totalDays = Math.ceil((dueDate - onboardingDate) / (1000 * 60 * 60 * 24));
-                    
-                    // Calculate days passed since onboarding
-                    const daysPassed = Math.ceil((today - onboardingDate) / (1000 * 60 * 60 * 24));
-                    
-                    // Calculate percentage
-                    let percentage = 0;
-                    if (totalDays > 0) {
-                        percentage = Math.min(Math.max((daysPassed / totalDays) * 100, 0), 100);
-                    }
-                    
-                    // Handle edge cases
-                    if (today < onboardingDate) {
-                        percentage = 0; // Not started yet
-                    } else if (today > dueDate) {
-                        percentage = 100; // Overdue
-                    }
-                    
-                    // Round percentage for display
-                    const displayPercentage = Math.round(percentage);
-                    
-                    // Update progress bar
-                    progressBar.style.width = displayPercentage + '%';
-                    progressBar.setAttribute('aria-valuenow', displayPercentage);
-                    progressText.textContent = displayPercentage + '%';
-                    
-                    // Apply color based on percentage
-                    progressBar.className = 'progress-bar'; // Reset classes
-                    
-                    if (percentage <= 25) {
-                        progressBar.classList.add('progress-green');
-                    } else if (percentage <= 50) {
-                        progressBar.classList.add('progress-yellow');
-                    } else if (percentage <= 75) {
-                        progressBar.classList.add('progress-orange');
-                    } else {
-                        progressBar.classList.add('progress-red');
-                    }
-                    
-                    // Add tooltip information
-                    const remainingDays = Math.max(0, Math.ceil((dueDate - today) / (1000 * 60 * 60 * 24)));
-                    let tooltipText = `${displayPercentage}% complete`;
-                    
-                    if (today < onboardingDate) {
-                        const daysToStart = Math.ceil((onboardingDate - today) / (1000 * 60 * 60 * 24));
-                        tooltipText = `Starts in ${daysToStart} day${daysToStart !== 1 ? 's' : ''}`;
-                    } else if (today > dueDate) {
-                        const overdueDays = Math.ceil((today - dueDate) / (1000 * 60 * 60 * 24));
-                        tooltipText = `Overdue by ${overdueDays} day${overdueDays !== 1 ? 's' : ''}`;
-                    } else if (remainingDays > 0) {
-                        tooltipText += ` • ${remainingDays} day${remainingDays !== 1 ? 's' : ''} remaining`;
-                    } else {
-                        tooltipText += ' • Due today';
-                    }
-                    
-                    progressBar.setAttribute('title', tooltipText);
-                    container.setAttribute('title', tooltipText);
-                }
-            });
-        }
-        
-        // Calculate progress on page load
-        calculateProgress();
-        
-        // Optionally, update progress every hour (3600000 ms)
-        setInterval(calculateProgress, 3600000);
-    });
-</script>
 {% endblock %}

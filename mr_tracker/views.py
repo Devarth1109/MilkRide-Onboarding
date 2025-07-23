@@ -7,6 +7,7 @@ from django.core.mail import send_mail
 from django.conf import settings
 from django.http import JsonResponse
 from django.db import transaction
+from datetime import datetime
 
 def dashboard(request):
     if 'email' not in request.session:
@@ -599,8 +600,10 @@ def add_merchant_task(request, merchant_id):
                         )
                         task.clean()
                         task.save()
+                        tasks_count = MerchantTask.objects.filter(merchant=merchant).count()
                         return JsonResponse({
                             'success': True,
+                            "forloop_counter": tasks_count,
                             'task': {
                                 'category': category.cat_name,
                                 'name': task.custom_task_name,
@@ -651,8 +654,10 @@ def add_merchant_task(request, merchant_id):
                     )
                     task.clean()
                     task.save()
+                    tasks_count = MerchantTask.objects.filter(merchant=merchant).count()
                     return JsonResponse({
                         'success': True,
+                        "forloop_counter": tasks_count,
                         'task': {
                             'category': category.cat_name,
                             'name': task.custom_task_name,
@@ -791,6 +796,13 @@ def merchant_task_details(request, task_id):
         new_status = request.POST.get('status')
         if new_status and new_status in ['pending', 'in_progress', 'on_hold', 'completed']:
             previous_status = task.status
+            if previous_status != new_status:
+                MerchantTaskHistory.objects.create(
+                    task=task,
+                    changed_by=user,
+                    change_description=f"Status changed from '{previous_status}' to '{new_status}'",
+                    change_time=timezone.now()
+                )
             task.status = new_status
             if new_status == 'completed':
                 task.end_date = timezone.now().date()
@@ -820,23 +832,33 @@ def update_merchant_task(request, task_id):
     categories = Category.objects.all()
     task_templates = TaskTemplate.objects.all()
 
+    def parse_date(date_str):
+        if date_str:
+            try:
+                return datetime.strptime(date_str, '%Y-%m-%d').date()
+            except ValueError:
+                return None
+        return None
+
     if request.method == 'POST':
         try:
+            # Store old values for logging
+            old_name = task.custom_task_name
+            old_desc = task.custom_task_description
+            old_status = task.status
+            old_start_date = task.start_date
+            old_due_date = task.due_date
+            old_end_date = task.end_date
+            old_category = task.category
+
             template_id = request.POST.get('task_template_id')
             name = request.POST.get('name', '')
             description = request.POST.get('description', '')
             status = request.POST.get('status', '')
-            start_date = request.POST.get('start_date') or None
-            due_date = request.POST.get('due_date') or None
-            end_date = request.POST.get('end_date') or None
+            start_date = parse_date(request.POST.get('start_date'))
+            due_date = parse_date(request.POST.get('due_date'))
+            end_date = parse_date(request.POST.get('end_date'))
             category = get_object_or_404(Category, id=request.POST['category_id'])
-
-            if not start_date:
-                start_date = None
-            if not due_date:
-                due_date = None
-            if not end_date:
-                end_date = None
 
             # If a template is selected, link it and update its fields
             if template_id:
@@ -868,14 +890,70 @@ def update_merchant_task(request, task_id):
                 task.custom_task_name = name
                 task.custom_task_description = description
 
+            previous_status = task.status
             task.status = status
             task.start_date = start_date
-            task.end_date = end_date
             task.due_date = due_date
             task.category = category
 
+            # Set end_date logic
+            if previous_status == 'completed' and status in ['pending', 'in_progress', 'on_hold']:
+                task.end_date = None
+            elif status == 'completed':
+                task.end_date = task.end_date or timezone.now().date()
+            else:
+                task.end_date = end_date
+
+            # Build change description for logging
+            changes = []
+            if old_name != task.custom_task_name:
+                changes.append(f"Task Name changed from '{old_name}' to '{task.custom_task_name}'")
+            else:
+                changes.append("Task Name unchanged")
+
+            if old_desc != task.custom_task_description:
+                changes.append("Description updated")
+            else:
+                changes.append("Description unchanged")
+
+            if old_status != task.status:
+                changes.append(f"Status changed from '{old_status}' to '{task.status}'")
+            else:
+                changes.append("Status unchanged")
+
+            if str(old_start_date) != str(task.start_date):
+                changes.append(f"Start date changed from '{old_start_date}' to '{task.start_date}'")
+            else:
+                changes.append("Start date unchanged")
+
+            if str(old_due_date) != str(task.due_date):
+                changes.append(f"Due date changed from '{old_due_date}' to '{task.due_date}'")
+            else:
+                changes.append("Due date unchanged")
+
+            if str(old_end_date) != str(task.end_date):
+                changes.append(f"End date changed from '{old_end_date}' to '{task.end_date}'")
+            else:
+                changes.append("End date unchanged")
+
+            if old_category != task.category:
+                changes.append(f"Category changed from '{old_category}' to '{task.category}'")
+            else:
+                changes.append("Category unchanged")
+
             task.clean()
             task.save()
+
+            # Log the changes if any
+            if changes:
+                change_description = "; ".join(changes)
+                MerchantTaskHistory.objects.create(
+                    task=task,
+                    changed_by=user,
+                    change_description=change_description,
+                    change_time=timezone.now()
+                )
+
             return redirect('view_merchant_tasks', merchant_id=task.merchant.id)
         except ValidationError as e:
             return render(request, 'admin_user/update_merchant_task.html', {
@@ -894,7 +972,7 @@ def update_merchant_task(request, task_id):
             'user': user,
             'today': today
         })
-    
+
 def delete_merchant_task(request, task_id):
     if 'email' not in request.session:
         return redirect('login')
@@ -905,3 +983,16 @@ def delete_merchant_task(request, task_id):
     merchant_id = task.merchant.id
     task.delete()
     return redirect('view_merchant_tasks', merchant_id=merchant_id)
+
+def view_task_history(request, task_id):
+    if 'email' not in request.session:
+        return redirect('login')
+    user = get_object_or_404(User, user_email=request.session['email'])
+    task = get_object_or_404(MerchantTask, id=task_id)
+    history = MerchantTaskHistory.objects.filter(task=task).order_by('-change_time')
+    context = {
+        'task': task,
+        'history': history,
+        'user': user,
+    }
+    return render(request, 'admin_user/view_task_history.html', context)

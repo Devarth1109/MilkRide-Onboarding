@@ -28,6 +28,7 @@
                                 <th>Due Date</th>
                                 <th>End Date</th>
                                 <th>Actions</th>
+                                <th>History</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -46,6 +47,9 @@
                                         {% csrf_token %}
                                         <button type="submit" class="btn btn-danger">Delete</button>
                                     </form>
+                                </td>
+                                <td>
+                                    <a href="{% url 'view_task_history' task.id %}" class="btn btn-info">View History</a>
                                 </td>
                             </tr>
                             {% empty %}

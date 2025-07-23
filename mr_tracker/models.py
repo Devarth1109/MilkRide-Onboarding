@@ -192,3 +192,12 @@ class MerchantUserNotification(models.Model):
 
     class Meta:
         unique_together = ('merchant', 'user')
+
+class MerchantTaskHistory(models.Model):
+    task = models.ForeignKey('MerchantTask', on_delete=models.CASCADE, related_name='history')
+    changed_by = models.ForeignKey('User', on_delete=models.SET_NULL, null=True)
+    change_time = models.DateTimeField(auto_now_add=True)
+    change_description = models.TextField()
+
+    def __str__(self):
+        return f"History for {self.task} at {self.change_time}"

@@ -33,7 +33,8 @@ urlpatterns = [
     path('admin_user/update_merchant_task/<int:task_id>/', update_merchant_task, name='update_merchant_task'),
     path('admin_user/delete_merchant_task/<int:task_id>/', delete_merchant_task, name='delete_merchant_task'),
     path('admin_user/view_merchant_tasks/<int:merchant_id>/', view_merchant_tasks, name='view_merchant_tasks'),
-    
+    path('admin_user/view_task_history/<int:task_id>/', view_task_history, name='view_task_history'),
+
     # Support URLs
     path('support_user/view_merchants/', view_merchants, name='support_view_merchants'),
     path('support_user/view_categories/', view_categories, name='support_view_categories'),

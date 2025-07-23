@@ -264,7 +264,8 @@ function addTaskAjax() {
             // Add new row to tasks table
             const tbody = document.getElementById('tasks-table-body');
             const row = document.createElement('tr');
-            row.innerHTML = `<td>${data.task.category}</td>
+            row.innerHTML = `<td>${data.forloop_counter}</td>
+                             <td>${data.task.category}</td>
                              <td>${data.task.name}</td>
                              <td>${data.task.start_date}</td>
                              <td>${data.task.due_date}</td>`;

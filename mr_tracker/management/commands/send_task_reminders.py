@@ -36,37 +36,55 @@ class Command(BaseCommand):
                 user=user,
                 status__in=['pending', 'in_progress', 'on_hold'],
                 due_date__gte=today
-            ).select_related('merchant')
+            ).select_related('merchant', 'category')
             print(f"User: {user.user_name}, Tasks: {tasks.count()}")  # Debug
             if tasks.exists():
-                print(f"Sending email to {user.user_email}")  # Debug
                 # Group tasks by merchant
                 merchant_map = {}
                 for task in tasks:
                     merchant = task.merchant
                     if merchant not in merchant_map:
                         merchant_map[merchant] = []
-                    badge = get_progress_badge(task, today)
-                    merchant_map[merchant].append(
-                        f"{badge} — Due: {task.due_date}"
-                    )
-                # Compose email (HTML)
-                lines = []
+                    merchant_map[merchant].append(task)
+                # Compose HTML email
+                merchant_tables = ""
                 for merchant, tasks_list in merchant_map.items():
-                    lines.append(f"<br><b>📍 Merchant: {merchant.m_name}</b>")
-                    lines.extend(tasks_list)
+                    merchant_tables += f"""
+                    <h4>Merchant: {merchant.m_name}</h4>
+                    <table border="1" cellpadding="5" cellspacing="0" style="border-collapse:collapse;">
+                        <tr>
+                            <th>Task Name</th>
+                            <th>Due Date</th>
+                            <th>Status</th>
+                        </tr>
+                    """
+                    for task in tasks_list:
+                        badge = get_progress_badge(task, today)
+                        merchant_tables += f"""
+                        <tr>
+                            <td>
+                                {badge}
+                                <br>
+                                <small>{task.category.cat_name if hasattr(task, 'category') and task.category else ''}</small>
+                            </td>
+                            <td>{task.due_date.strftime('%Y-%m-%d') if task.due_date else ''}</td>
+                            <td>{task.status.replace('_', ' ').title()}</td>
+                        </tr>
+                        """
+                    merchant_tables += "</table><br>"
+
                 subject = "Daily Reminder: You Have Pending Onboarding Tasks"
                 message = f"""
-<html>
-<body>
-<p>Hi {user.user_name},</p>
-<p>You have tasks pending across the following merchants:</p>
-{''.join(lines)}
-<p>Please make progress before the due dates.</p>
-<p>Thanks,<br>Onboarding Team</p>
-</body>
-</html>
-"""
+                <html>
+                <body>
+                <p>Hi {user.user_name},</p>
+                <p>You have tasks pending across the following merchants:</p>
+                {merchant_tables}
+                <p>Please make progress before the due dates.</p>
+                <p>Thanks,<br>Onboarding Team</p>
+                </body>
+                </html>
+                """
                 send_mail(
                     subject,
                     "",
