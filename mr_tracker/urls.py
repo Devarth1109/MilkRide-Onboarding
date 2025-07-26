@@ -27,6 +27,7 @@ urlpatterns = [
     path('admin_user/update_task_template/<int:task_id>/', update_task_template, name='update_task_template'),
     path('admin_user/view_task_templates/', view_task_templates, name='view_task_templates'),
     path('admin_user/delete_task_template/<int:task_id>/', delete_task_template, name='delete_task_template'),
+    path('reorder-task-templates/', reorder_task_templates, name='reorder_task_templates'),
     
     path('get-task-templates/', get_task_templates_by_category, name='get_task_templates_by_category'),
     path('admin_user/add_merchant_task/<int:merchant_id>/', add_merchant_task, name='add_merchant_task'),

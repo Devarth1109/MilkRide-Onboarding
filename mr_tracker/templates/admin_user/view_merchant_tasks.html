@@ -37,13 +37,25 @@
                                 <td>{{ forloop.counter }}</td>
                                 <td>{{ task.custom_task_name }}</td>
                                 <td>{{ task.custom_task_description }}</td>
-                                <td>{{ task.status }}</td>
+                                <td>
+                                    {% if task.status == "pending" %}
+                                        <span class="badge bg-info">Pending</span>
+                                    {% elif task.status == "in_progress" %}
+                                        <span class="badge bg-warning">In Progress</span>
+                                    {% elif task.status == "on_hold" %}
+                                        <span class="badge bg-danger">On Hold</span>
+                                    {% elif task.status == "completed" %}
+                                        <span class="badge bg-success">Completed</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">None</span>
+                                    {% endif %}
+                                </td>
                                 <td>{{ task.start_date }}</td>
                                 <td>{{ task.due_date }}</td>
                                 <td>{{ task.end_date }}</td>
                                 <td>
                                     <a href="{% url 'update_merchant_task' task.id %}" class="btn btn-warning">Edit</a>
-                                    <form action="{% url 'delete_merchant_task' task.id %}" method="POST" style="display:inline;">
+                                    <form action="{% url 'delete_merchant_task' task.id %}" method="POST" class="delete-form d-inline">
                                         {% csrf_token %}
                                         <button type="submit" class="btn btn-danger">Delete</button>
                                     </form>
@@ -64,5 +76,36 @@
         </div>
     </div>
 </div>
+
+
+<!-- SweetAlert2 CDN -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<!-- Delete Confirmation Script -->
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const deleteForms = document.querySelectorAll('.delete-form');
+
+        deleteForms.forEach(form => {
+            form.addEventListener('submit', function (e) {
+                e.preventDefault(); // Stop the form from submitting immediately
+
+                Swal.fire({
+                    title: 'Are you sure?',
+                    text: "You want to delete this Merchant Task?",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#d33',
+                    cancelButtonColor: '#3085d6',
+                    confirmButtonText: 'Yes, delete it!'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        form.submit(); // Proceed with submission if confirmed
+                    }
+                });
+            });
+        });
+    });
+</script>
 
 {% endblock %}

@@ -8,6 +8,8 @@ from django.conf import settings
 from django.http import JsonResponse
 from django.db import transaction
 from datetime import datetime
+import json
+from django.http import JsonResponse
 
 def dashboard(request):
     if 'email' not in request.session:
@@ -27,19 +29,31 @@ def dashboard(request):
             'categories': Category.objects.all(),
         })
     elif user.role == 'support':
-        # Assigned merchants
         assigned_merchants = Merchant.objects.filter(assigned_manager=user)
-        # Categories assigned to this support user
-        assigned_categories = Category.objects.filter(assigned_support_users=user)
-        # Tasks for those categories
-        assigned_tasks = MerchantTask.objects.filter(category__in=assigned_categories)
+        assigned_tasks = MerchantTask.objects.filter(user=user)
+        pending_tasks = assigned_tasks.filter(status='pending')
+        in_progress_tasks = assigned_tasks.filter(status='in_progress')
+        completed_tasks = assigned_tasks.filter(status='completed')
+        on_hold_tasks = assigned_tasks.filter(status='on_hold')
+
+        # Overdue tasks: due_date < today and not completed
+        today = timezone.now().date()
+        overdue_tasks = assigned_tasks.filter(
+            due_date__lt=today
+        ).exclude(status='completed')
+
+        # Add overdue_days attribute for each task
+        for task in overdue_tasks:
+            task.overdue_days = today - task.due_date if task.due_date else None
+
         context.update({
             'assigned_merchants': assigned_merchants,
-            'assigned_categories': assigned_categories,
             'assigned_tasks': assigned_tasks,
-            'merchants': assigned_merchants,  # for backward compatibility in template
-            'categories': assigned_categories,
-            'task_templates': assigned_tasks,  # for backward compatibility in template
+            'pending_tasks': pending_tasks,
+            'in_progress_tasks': in_progress_tasks,
+            'completed_tasks': completed_tasks,
+            'on_hold_tasks': on_hold_tasks,
+            'overdue_tasks': overdue_tasks,
         })
     return render(request, 'dashboard.html', context)
 
@@ -442,6 +456,7 @@ def add_task_template(request):
                 user=user,
                 duration=duration,
                 priority=request.POST['priority'],
+                order=int(request.POST['order']) if request.POST.get('order') else 0,
                 category=get_object_or_404(Category, id=request.POST['category_id'])
             )
             task.clean()
@@ -469,6 +484,19 @@ def view_task_templates(request):
         'today': today,
     }
     return render(request, template, context)
+
+def reorder_task_templates(request):
+    if request.method == "POST":
+        try:
+            data = json.loads(request.body)
+            for item in data.get('order', []):
+                task_id = item['id']
+                order = item['order']
+                TaskTemplate.objects.filter(id=task_id).update(order=order)
+            return JsonResponse({'success': True})
+        except Exception as e:
+            return JsonResponse({'success': False, 'error': str(e)})
+    return JsonResponse({'success': False, 'error': 'Invalid request'}, status=400)
 
 def view_category_tasks(request, category_id):
     if 'email' not in request.session:
@@ -554,206 +582,114 @@ def get_task_templates_by_category(request):
 def add_merchant_task(request, merchant_id):
     if 'email' not in request.session:
         return redirect('login')
-    
+
     user = get_object_or_404(User, user_email=request.session['email'])
     today = timezone.now().strftime('%Y-%m-%d')
     if user.role != 'admin':
-        return HttpResponse('Unauthorized', status=403)
+        return redirect('dashboard')
 
     merchant = get_object_or_404(Merchant, id=merchant_id)
-    categories = Category.objects.filter(is_active=True).order_by('cat_name')
+    assigned_support_user = merchant.assigned_manager
+    categories = Category.objects.filter(is_active=True, assigned_support_users=assigned_support_user)
     support_users = User.objects.filter(role='support', user_status='active').order_by('user_name')
-    tasks = MerchantTask.objects.filter(merchant=merchant).order_by('-created_at')[:10]  # Show last 10
+    tasks = MerchantTask.objects.filter(merchant=merchant).order_by('-created_at')[:10]
 
-    # AJAX support for "+Add" button
-    if request.method == 'POST' and request.GET.get('ajax') == '1':
+    # Fetch all task templates for these categories
+    default_task_templates = TaskTemplate.objects.filter(category__in=categories).order_by('category', 'order')
+
+    # Helper to parse date string to date object
+    def parse_date(date_str):
+        if date_str:
+            try:
+                return datetime.strptime(date_str, "%Y-%m-%d").date()
+            except Exception:
+                return None
+        return None
+
+    # Handle bulk add via AJAX
+    if request.method == 'POST' and request.GET.get('ajax') == '1' and request.GET.get('bulk') == '1':
         try:
-            with transaction.atomic():
-                support_user_id = request.POST.get('support_user_id')
-                support_user = get_object_or_404(User, id=support_user_id, role='support')
-                task_template_id = request.POST.get('task_template_id')
-                category_id = request.POST.get('category_id')
-
-                if not category_id:
-                    return JsonResponse({'success': False, 'error': 'Please select a category.'})
-                
-                category = get_object_or_404(Category, id=category_id)
-                status = request.POST.get('status', 'pending')
-                start_date = request.POST.get('start_date') or None
-                due_date = request.POST.get('due_date') or None
-                end_date = request.POST.get('end_date') or None
-
-                if task_template_id:
-                    try:
-                        task_template = TaskTemplate.objects.get(id=task_template_id, category=category, user=user)
-                        task = MerchantTask.objects.create(
-                            custom_task_name=task_template.task_name,
-                            custom_task_description=task_template.task_description,
-                            status=status,
-                            start_date=start_date,
-                            due_date=due_date,
-                            end_date=end_date,
-                            category=task_template.category,
-                            user=support_user,
-                            merchant=merchant,
-                            task_template=task_template
-                        )
-                        task.clean()
-                        task.save()
-                        tasks_count = MerchantTask.objects.filter(merchant=merchant).count()
-                        return JsonResponse({
-                            'success': True,
-                            "forloop_counter": tasks_count,
-                            'task': {
-                                'category': category.cat_name,
-                                'name': task.custom_task_name,
-                                'start_date': str(task.start_date),
-                                'due_date': str(task.due_date),
-                            }
-                        })
-                    except TaskTemplate.DoesNotExist:
-                        return JsonResponse({'success': False, 'error': 'Task template does not exist for the selected category.'})
-                else:
-                    name = request.POST.get('name', '').strip()
-                    description = request.POST.get('description', '').strip()
-                    duration = request.POST.get('duration')
-                    priority = request.POST.get('priority')
-
-                    if not all([name, description, duration, priority]):
-                        return JsonResponse({'success': False, 'error': 'Custom task name, description, duration, and priority are required.'})
-                    
-                    try:
-                        duration = int(duration)
-                        if duration <= 0:
-                            raise ValueError()
-                    except ValueError:
-                        return JsonResponse({'success': False, 'error': 'Duration must be a positive integer.'})
-
-                    task_template = TaskTemplate.objects.create(
-                        task_name=name,
-                        task_description=description,
-                        user=user,
-                        duration=duration,
-                        priority=priority,
-                        category=category
-                    )
-                    task_template.clean()
-                    task_template.save()
-
-                    task = MerchantTask.objects.create(
-                        custom_task_name=name,
-                        custom_task_description=description,
-                        status=status,
-                        start_date=start_date,
-                        due_date=due_date,
-                        end_date=end_date,
-                        category=category,
-                        user=support_user,
-                        merchant=merchant,
-                        task_template=task_template
-                    )
-                    task.clean()
-                    task.save()
-                    tasks_count = MerchantTask.objects.filter(merchant=merchant).count()
-                    return JsonResponse({
-                        'success': True,
-                        "forloop_counter": tasks_count,
-                        'task': {
-                            'category': category.cat_name,
-                            'name': task.custom_task_name,
-                            'start_date': str(task.start_date),
-                            'due_date': str(task.due_date),
-                        }
-                    })
+            data = json.loads(request.body)
+            support_user_id = data.get('support_user_id')
+            support_user = get_object_or_404(User, id=support_user_id, role='support')
+            tasks_data = data.get('tasks', [])
+            for t in tasks_data:
+                task_template = get_object_or_404(TaskTemplate, id=t['task_template_id'])
+                start_date = parse_date(t.get('start_date'))
+                due_date = parse_date(t.get('due_date'))
+                end_date = parse_date(t.get('end_date'))
+                MerchantTask.objects.create(
+                    custom_task_name=task_template.task_name,
+                    custom_task_description=task_template.task_description,
+                    status=t.get('status', 'pending'),
+                    start_date=start_date,
+                    due_date=due_date,
+                    end_date=end_date,
+                    category=task_template.category,
+                    user=support_user,
+                    merchant=merchant,
+                    task_template=task_template
+                )
+            return JsonResponse({'success': True})
         except Exception as e:
             return JsonResponse({'success': False, 'error': str(e)})
 
-    # Standard POST (non-AJAX, fallback)
-    elif request.method == 'POST':
+    # Handle single add via AJAX (existing logic)
+    if request.method == 'POST' and request.GET.get('ajax') == '1':
         try:
-            with transaction.atomic():
-                support_user_id = request.POST.get('support_user_id')
-                support_user = get_object_or_404(User, id=support_user_id, role='support')
-                task_template_id = request.POST.get('task_template_id')
-                category_id = request.POST.get('category_id')
+            support_user_id = request.POST.get('support_user_id')
+            support_user = get_object_or_404(User, id=support_user_id, role='support')
+            task_template_id = request.POST.get('task_template_id')
+            category_id = request.POST.get('category_id')
+            name = request.POST.get('name')
+            description = request.POST.get('description')
+            duration = request.POST.get('duration')
+            priority = request.POST.get('priority')
+            status = request.POST.get('status')
+            start_date = parse_date(request.POST.get('start_date'))
+            due_date = parse_date(request.POST.get('due_date'))
+            end_date = parse_date(request.POST.get('end_date'))
 
-                if not category_id:
-                    raise ValidationError("Please select a category.")
-                
+            if task_template_id:
+                task_template = get_object_or_404(TaskTemplate, id=task_template_id)
+                task = MerchantTask.objects.create(
+                    custom_task_name=task_template.task_name,
+                    custom_task_description=task_template.task_description,
+                    status=status,
+                    start_date=start_date,
+                    due_date=due_date,
+                    end_date=end_date,
+                    category=task_template.category,
+                    user=support_user,
+                    merchant=merchant,
+                    task_template=task_template
+                )
+            else:
                 category = get_object_or_404(Category, id=category_id)
-                status = request.POST.get('status', 'pending')
-                start_date = request.POST.get('start_date') or None
-                due_date = request.POST.get('due_date') or None
-                end_date = request.POST.get('end_date') or None
-
-                if task_template_id:
-                    try:
-                        task_template = TaskTemplate.objects.get(id=task_template_id, category=category, user=user)
-                        task = MerchantTask.objects.create(
-                            custom_task_name=task_template.task_name,
-                            custom_task_description=task_template.task_description,
-                            status=status,
-                            start_date=start_date,
-                            due_date=due_date,
-                            end_date=end_date,
-                            category=task_template.category,
-                            user=support_user,
-                            merchant=merchant,
-                            task_template=task_template
-                        )
-                        task.clean()
-                        task.save()
-                        messages.success(request, f'Task "{task_template.task_name}" has been successfully added for {merchant.m_name}.')
-                        return redirect('view_merchant_tasks', merchant_id=merchant.id)
-                    except TaskTemplate.DoesNotExist:
-                        raise ValidationError('Task template does not exist for the selected category.')
-                else:
-                    name = request.POST.get('name', '').strip()
-                    description = request.POST.get('description', '').strip()
-                    duration = request.POST.get('duration')
-                    priority = request.POST.get('priority')
-
-                    if not all([name, description, duration, priority]):
-                        raise ValidationError('Custom task name, description, duration, and priority are required.')
-                    
-                    try:
-                        duration = int(duration)
-                        if duration <= 0:
-                            raise ValueError()
-                    except ValueError:
-                        raise ValidationError('Duration must be a positive integer.')
-
-                    task_template = TaskTemplate.objects.create(
-                        task_name=name,
-                        task_description=description,
-                        user=user,
-                        duration=duration,
-                        priority=priority,
-                        category=category
-                    )
-                    task_template.clean()
-                    task_template.save()
-
-                    task = MerchantTask.objects.create(
-                        custom_task_name=name,
-                        custom_task_description=description,
-                        status=status,
-                        start_date=start_date,
-                        due_date=due_date,
-                        end_date=end_date,
-                        category=category,
-                        user=support_user,
-                        merchant=merchant,
-                        task_template=task_template
-                    )
-                    task.clean()
-                    task.save()
-                    messages.success(request, f'Custom task "{name}" has been successfully added for {merchant.m_name}.')
-                    return redirect('view_merchant_tasks', merchant_id=merchant.id)
-        except ValidationError as e:
-            messages.error(request, str(e))
+                task = MerchantTask.objects.create(
+                    custom_task_name=name,
+                    custom_task_description=description,
+                    status=status,
+                    start_date=start_date,
+                    due_date=due_date,
+                    end_date=end_date,
+                    category=category,
+                    user=support_user,
+                    merchant=merchant,
+                    task_template=None
+                )
+            return JsonResponse({
+                'success': True,
+                'task': {
+                    'category': task.category.cat_name,
+                    'name': task.custom_task_name,
+                    'start_date': str(task.start_date) if task.start_date else '',
+                    'due_date': str(task.due_date) if task.due_date else ''
+                },
+                'forloop_counter': MerchantTask.objects.filter(merchant=merchant).count()
+            })
         except Exception as e:
-            messages.error(request, f'An error occurred: {str(e)}')
+            return JsonResponse({'success': False, 'error': str(e)})
 
     # GET request
     return render(request, 'admin_user/add_merchant_task.html', {
@@ -761,6 +697,7 @@ def add_merchant_task(request, merchant_id):
         'categories': categories,
         'support_users': support_users,
         'tasks': tasks,
+        'default_task_templates': default_task_templates,
         'user_role': user.role,
         'user': user
     })

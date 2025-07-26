@@ -46,3 +46,73 @@ Found 2 support users
 User: Webcreta 123, Tasks: 1
 Sent overdue alert to devarthn@webcreta.in
 User: MilkRide, Tasks: 0
+Command started
+Found 2 support users
+User: Webcreta 123, Tasks: 3
+Sent overdue alert to devarthn@webcreta.in
+User: MilkRide, Tasks: 0
+Command started
+Found 2 support users
+User: Webcreta 123, Tasks: 4
+Traceback (most recent call last):
+  File "C:\Users\Devarth\OneDrive\Desktop\Python Programs\Django\MR-Onboarding\manage.py", line 22, in <module>
+    main()
+    ~~~~^^
+  File "C:\Users\Devarth\OneDrive\Desktop\Python Programs\Django\MR-Onboarding\manage.py", line 18, in main
+    execute_from_command_line(sys.argv)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^
+  File "C:\Users\Devarth\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\core\management\__init__.py", line 442, in execute_from_command_line
+    utility.execute()
+    ~~~~~~~~~~~~~~~^^
+  File "C:\Users\Devarth\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\core\management\__init__.py", line 436, in execute
+    self.fetch_command(subcommand).run_from_argv(self.argv)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^
+  File "C:\Users\Devarth\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\core\management\base.py", line 416, in run_from_argv
+    self.execute(*args, **cmd_options)
+    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Devarth\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\core\management\base.py", line 460, in execute
+    output = self.handle(*args, **options)
+  File "C:\Users\Devarth\OneDrive\Desktop\Python Programs\Django\MR-Onboarding\mr_tracker\management\commands\send_overdue_task_alerts.py", line 75, in handle
+    send_mail(
+    ~~~~~~~~~^
+        subject,
+        ^^^^^^^^
+    ...<4 lines>...
+        fail_silently=False,
+        ^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\Devarth\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\core\mail\__init__.py", line 92, in send_mail
+    return mail.send()
+           ~~~~~~~~~^^
+  File "C:\Users\Devarth\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\core\mail\message.py", line 307, in send
+    return self.get_connection(fail_silently).send_messages([self])
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^
+  File "C:\Users\Devarth\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\core\mail\backends\smtp.py", line 136, in send_messages
+    sent = self._send(message)
+  File "C:\Users\Devarth\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\core\mail\backends\smtp.py", line 155, in _send
+    self.connection.sendmail(
+    ~~~~~~~~~~~~~~~~~~~~~~~~^
+        from_email, recipients, message.as_bytes(linesep="\r\n")
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\Devarth\AppData\Local\Programs\Python\Python313\Lib\smtplib.py", line 891, in sendmail
+    (code, resp) = self.data(msg)
+                   ~~~~~~~~~^^^^^
+  File "C:\Users\Devarth\AppData\Local\Programs\Python\Python313\Lib\smtplib.py", line 567, in data
+    (code, repl) = self.getreply()
+                   ~~~~~~~~~~~~~^^
+  File "C:\Users\Devarth\AppData\Local\Programs\Python\Python313\Lib\smtplib.py", line 398, in getreply
+    line = self.file.readline(_MAXLINE + 1)
+  File "C:\Users\Devarth\AppData\Local\Programs\Python\Python313\Lib\socket.py", line 719, in readinto
+    return self._sock.recv_into(b)
+           ~~~~~~~~~~~~~~~~~~~~^^^
+  File "C:\Users\Devarth\AppData\Local\Programs\Python\Python313\Lib\ssl.py", line 1304, in recv_into
+    return self.read(nbytes, buffer)
+           ~~~~~~~~~^^^^^^^^^^^^^^^^
+  File "C:\Users\Devarth\AppData\Local\Programs\Python\Python313\Lib\ssl.py", line 1138, in read
+    return self._sslobj.read(len, buffer)
+           ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+KeyboardInterrupt
+^C

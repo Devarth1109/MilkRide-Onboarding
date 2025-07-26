@@ -37,18 +37,24 @@
                                 <td>{{ user.user_email }}</td>
                                 <td>{{ user.user_phone }}</td>
                                 <td>Support</td>
-                                <td>{{ user.user_status }}</td>
                                 <td>
-                                    <a href="{% url 'update_support_user' user.id %}"  class="btn btn-warning">Edit</a>
-                                    <form action="{% url 'delete_support_user' user.id %}" method="POST" style="display:inline;">
+                                    {% if user.user_status == "active" %}
+                                        <span class="badge bg-success">Active</span>
+                                    {% else %}
+                                        <span class="badge bg-danger">Inactive</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <a href="{% url 'update_support_user' user.id %}" class="btn btn-warning">Edit</a>
+                                    <form action="{% url 'delete_support_user' user.id %}" method="POST" class="delete-form d-inline">
                                         {% csrf_token %}
-                                        <button type="submit" class="btn btn-danger">Delete</button>
+                                        <button type="submit" class="btn btn-danger delete-btn">Delete</button>
                                     </form>
                                 </td>
                             </tr>
                             {% empty %}
                             <tr>
-                                <td colspan="6">No support users available.</td>
+                                <td colspan="7">No support users available.</td>
                             </tr>
                             {% endfor %}
                         </tbody>
@@ -58,5 +64,35 @@
         </div>
     </div>
 </div>
+
+<!-- SweetAlert2 CDN -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<!-- Delete Confirmation Script -->
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const deleteForms = document.querySelectorAll('.delete-form');
+
+        deleteForms.forEach(form => {
+            form.addEventListener('submit', function (e) {
+                e.preventDefault(); // Stop the form from submitting immediately
+
+                Swal.fire({
+                    title: 'Are you sure?',
+                    text: "You want to delete this support user?",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#d33',
+                    cancelButtonColor: '#3085d6',
+                    confirmButtonText: 'Yes, delete it!'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        form.submit(); // Proceed with submission if confirmed
+                    }
+                });
+            });
+        });
+    });
+</script>
 
 {% endblock %}

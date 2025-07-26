@@ -38,7 +38,19 @@
                                     <td>{{ merchant.m_email }}</td>
                                     <td>{{ merchant.m_phone }}</td>
                                     <td>{{ merchant.m_city }}</td>
-                                    <td>{{ merchant.m_status }}</td>
+                                    <td>
+                                        {% if merchant.m_status == "pending" %}
+                                            <span class="badge bg-info">Pending</span>
+                                        {% elif merchant.m_status == "in_process" %}
+                                            <span class="badge bg-warning">In Process</span>
+                                        {% elif merchant.m_status == "on_hold" %}
+                                            <span class="badge bg-danger">On Hold</span>
+                                        {% elif merchant.m_status == "completed" %}
+                                            <span class="badge bg-success">Completed</span>
+                                        {% else %}
+                                            <span class="badge bg-secondary">None</span>
+                                        {% endif %}
+                                    </td>
                                     <td>{{ merchant.m_onboarding_date }}</td>
                                     <td>{{ merchant.m_due_date }}</td>
                                     <td>

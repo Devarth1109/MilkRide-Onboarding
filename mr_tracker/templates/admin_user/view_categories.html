@@ -42,7 +42,7 @@
                                 </td>
                                 <td>
                                     <a href="{% url 'update_category' category.id %}" class="btn btn-warning">Edit</a>
-                                    <form action="{% url 'delete_category' category.id %}" method="POST" style="display:inline;">
+                                    <form action="{% url 'delete_category' category.id %}" method="POST" class="delete-form d-inline">
                                         {% csrf_token %}
                                         <button type="submit" class="btn btn-danger">Delete</button>
                                     </form>
@@ -60,4 +60,35 @@
         </div>
     </div>
 </div>
+
+<!-- SweetAlert2 CDN -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<!-- Delete Confirmation Script -->
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const deleteForms = document.querySelectorAll('.delete-form');
+
+        deleteForms.forEach(form => {
+            form.addEventListener('submit', function (e) {
+                e.preventDefault(); // Stop the form from submitting immediately
+
+                Swal.fire({
+                    title: 'Are you sure?',
+                    text: "You want to delete this Category?",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#d33',
+                    cancelButtonColor: '#3085d6',
+                    confirmButtonText: 'Yes, delete it!'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        form.submit(); // Proceed with submission if confirmed
+                    }
+                });
+            });
+        });
+    });
+</script>
+
 {% endblock %}

@@ -123,6 +123,33 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    function addWorkingDays(startDateStr, daysToAdd) {
+        let date = new Date(startDateStr);
+        let added = 0;
+        while (added < daysToAdd) {
+            date.setDate(date.getDate() + 1);
+            // 0 = Sunday, 6 = Saturday
+            if (date.getDay() !== 0 && date.getDay() !== 6) {
+                added++;
+            }
+        }
+        // Format as yyyy-mm-dd
+        return date.toISOString().slice(0, 10);
+    }
+
+    function updateDueDate() {
+        let onboardDate = document.getElementById('onboarding_date').value;
+        if (onboardDate) {
+            let dueDate = addWorkingDays(onboardDate, 20);
+            document.getElementById('due_date').value = dueDate;
+        }
+    }
+
+    document.getElementById('onboarding_date').addEventListener('change', function() {
+        updateDueDate();
+        updateFields(); // recalculate pending etc.
+    });
+
     function updateFields() {
         let setupFees = parseFloat(document.getElementById('setup_fees').value) || 0;
         let amountPaid = parseFloat(document.getElementById('amount_paid').value) || 0;
@@ -146,6 +173,7 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('due_date').addEventListener('change', updateFields);
 
     // Initial calculation on page load
+    updateDueDate();
     updateFields();
 });
 </script>

@@ -42,14 +42,16 @@
                                     {% endif %}
                                 </td>
                                 <td>
-                                    {% if task.status == 'Pending' %}
-                                        <span class="badge badge-warning">{{ task.status }}</span>
-                                    {% elif task.status == 'In Progress' %}
-                                        <span class="badge badge-info">{{ task.status }}</span>
-                                    {% elif task.status == 'Completed' %}
-                                        <span class="badge badge-success">{{ task.status }}</span>
+                                    {% if task.status == "pending" %}
+                                        <span class="badge bg-info">Pending</span>
+                                    {% elif task.status == "in_progress" %}
+                                        <span class="badge bg-warning">In Progress</span>
+                                    {% elif task.status == "on_hold" %}
+                                        <span class="badge bg-danger">On Hold</span>
+                                    {% elif task.status == "completed" %}
+                                        <span class="badge bg-success">Completed</span>
                                     {% else %}
-                                        <span class="badge badge-secondary">{{ task.status }}</span>
+                                        <span class="badge bg-secondary">None</span>
                                     {% endif %}
                                 </td>
                                 <td>{{ task.start_date }}</td>

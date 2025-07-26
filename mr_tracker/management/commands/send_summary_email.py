@@ -12,7 +12,7 @@ class Command(BaseCommand):
         support_users = User.objects.filter(role='support', user_status='active')
         print(f"Found {support_users.count()} support users")
         for user in support_users:
-            merchants = user.assigned_merchants.all()
+            merchants = user.assigned_merchants.exclude(m_status='completed')
             print(f"User: {user.user_email}, Merchants: {merchants.count()}")
             if not merchants.exists():
                 continue

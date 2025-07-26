@@ -47,7 +47,19 @@
                                     <td>{{ merchant.m_email }}</td>
                                     <td>{{ merchant.m_phone }}</td>
                                     <td>{{ merchant.m_city }}</td>
-                                    <td>{{ merchant.m_status }}</td>
+                                    <td>
+                                        {% if merchant.m_status == "pending" %}
+                                            <span class="badge bg-info">Pending</span>
+                                        {% elif merchant.m_status == "in_process" %}
+                                            <span class="badge bg-warning">In Process</span>
+                                        {% elif merchant.m_status == "on_hold" %}
+                                            <span class="badge bg-danger">On Hold</span>
+                                        {% elif merchant.m_status == "completed" %}
+                                            <span class="badge bg-success">Completed</span>
+                                        {% else %}
+                                            <span class="badge bg-secondary">None</span>
+                                        {% endif %}
+                                    </td>
                                     <td>{{ merchant.m_onboarding_date }}</td>
                                     <td>{{ merchant.m_due_date }}</td>
                                     <td>
@@ -64,7 +76,7 @@
                                     {% if user_role == 'admin' %}
                                         <td>
                                             <a href="{% url 'update_merchant' merchant.id %}" class="btn btn-warning">Edit</a>
-                                            <form action="{% url 'delete_merchant' merchant.id %}" method="POST" style="display:inline;">
+                                            <form action="{% url 'delete_merchant' merchant.id %}" method="POST" class="delete-form d-inline">
                                                 {% csrf_token %}
                                                 <button type="submit" class="btn btn-danger">Delete</button>
                                             </form>
@@ -86,4 +98,36 @@
         </div>
     </div>
 </div>
+
+
+<!-- SweetAlert2 CDN -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<!-- Delete Confirmation Script -->
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const deleteForms = document.querySelectorAll('.delete-form');
+
+        deleteForms.forEach(form => {
+            form.addEventListener('submit', function (e) {
+                e.preventDefault(); // Stop the form from submitting immediately
+
+                Swal.fire({
+                    title: 'Are you sure?',
+                    text: "You want to delete this Merchant?",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#d33',
+                    cancelButtonColor: '#3085d6',
+                    confirmButtonText: 'Yes, delete it!'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        form.submit(); // Proceed with submission if confirmed
+                    }
+                });
+            });
+        });
+    });
+</script>
+
 {% endblock %}

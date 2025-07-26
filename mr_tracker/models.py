@@ -116,6 +116,7 @@ class TaskTemplate(models.Model):
     priority = models.CharField(max_length=50, choices=[
         ('low', 'Low'), ('medium', 'Medium'), ('high', 'High')], default='medium')
     category = models.ForeignKey(Category, on_delete=models.CASCADE, related_name='task_templates')
+    order = models.IntegerField(default=0, help_text="Order of the task in the template")
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

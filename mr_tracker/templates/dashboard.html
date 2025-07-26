@@ -46,14 +46,6 @@
           <div class="col-md-4">
             <div class="card">
               <div class="card-body">
-                <p class="text-muted">Total Categories</p>
-                <h4>{{ assigned_categories|length }}</h4>
-              </div>
-            </div>
-          </div>
-          <div class="col-md-4">
-            <div class="card">
-              <div class="card-body">
                 <p class="text-muted">Total Tasks</p>
                 <h4>{{ assigned_tasks|length }}</h4>
               </div>
@@ -61,17 +53,76 @@
           </div>
         </div>
         <div class="row">
+          <div class="col-md-4">
+            <div class="card">
+              <div class="card-body">
+                <p class="mb-2 text-muted">Total Pending Tasks</p>
+                <h4>{{ pending_tasks|length }}</h4>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="card">
+              <div class="card-body">
+                <p class="text-muted">Total In Progress Tasks</p>
+                <h4>{{ in_progress_tasks|length }}</h4>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="card">
+              <div class="card-body">
+                <p class="text-muted">Total Completed Tasks</p>
+                <h4>{{ completed_tasks|length }}</h4>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="card">
+              <div class="card-body">
+                <p class="text-muted">Total On Hold Tasks</p>
+                <h4>{{ on_hold_tasks|length }}</h4>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="row mt-4">
           <div class="col-12">
             <div class="card">
               <div class="card-body">
-                <h5>Your Assigned Merchants</h5>
-                <ul>
-                  {% for merchant in assigned_merchants %}
-                    <li>{{ merchant.m_name }} ({{ merchant.m_email }})</li>
-                  {% empty %}
-                    <li>No merchants assigned.</li>
-                  {% endfor %}
-                </ul>
+                <h5>Overdue Tasks</h5>
+                <div class="table-responsive">
+                  <table class="table table-bordered table-sm">
+                    <thead>
+                      <tr>
+                        <th>Merchant Name</th>
+                        <th>Task Name</th>
+                        <th>Due Date</th>
+                        <th>Overdue Days</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {% for task in overdue_tasks %}
+                      <tr>
+                        <td>{{ task.merchant.m_name }}</td>
+                        <td>{{ task.custom_task_name }}</td>
+                        <td>{{ task.due_date }}</td>
+                        <td>
+                          {% if task.overdue_days.days %}
+                            {{ task.overdue_days.days }}
+                          {% else %}
+                            0
+                          {% endif %}
+                        </td>
+                      </tr>
+                      {% empty %}
+                      <tr>
+                        <td colspan="4">No overdue tasks.</td>
+                      </tr>
+                      {% endfor %}
+                    </tbody>
+                  </table>
+                </div>
               </div>
             </div>
           </div>
